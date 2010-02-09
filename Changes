@@ -1,4 +1,7 @@
 Revision history for Perl extension Net::Server::SS::PreFork.
 
+0.02  Wed Feb 10 07:33:00 2010
+	- fix test error (due to a glitch in Net::Server) on linux
+
 0.01  Wed Sep 09 17:12:00 2009
 	- initial version

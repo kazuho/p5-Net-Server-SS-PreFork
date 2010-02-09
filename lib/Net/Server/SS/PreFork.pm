@@ -9,7 +9,7 @@ use Server::Starter qw(server_ports);
 
 use base qw(Net::Server::PreFork);
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 sub pre_bind {
     my $self = shift;

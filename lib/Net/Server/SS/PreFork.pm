@@ -59,6 +59,27 @@ sub sig_hup {
     );
 }
 
+sub shutdown_sockets {
+    # Net::Server::shutdown_sockets uses shutdown(2) to close accept(2)ing
+    # sockets (which is a bug IMHO).  On OSX, shutdown(2) returns ENOTSOCK
+    # so the socket is not closed.  On Linux, shutdown(2) closes the accepting
+    # connection on all the forked processes sharing the socket (and the
+    # next generation workers spawned by Server::Starter woul never be able
+    # to accept incoming connections).  Thus we override the function and use
+    # close(2) instead of shutdown(2).
+    my $self = shift;
+    my $prop = $self->{server};
+    
+    for my $sock (@{$prop->{sock}}) {
+        $sock->close; # close sockets - nobody should be reading/writing still
+    }
+    
+    ### delete the sock objects
+    $prop->{sock} = [];
+    
+    return 1;
+}
+
 1;
 __END__
 

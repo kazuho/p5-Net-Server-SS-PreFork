@@ -30,6 +30,7 @@ sub pre_bind {
             or $self->fatal("failed to bind listening socket:$ports{$port}:$!");
         push @{$prop->{sock}}, $sock;
     }
+    $prop->{multi_port} = 1 if @{$prop->{sock}} > 1;
 }
 
 sub bind {

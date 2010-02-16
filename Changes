@@ -1,5 +1,8 @@
 Revision history for Perl extension Net::Server::SS::PreFork.
 
+0.04  Tue Feb 16 13:31:00 2010
+	- [bugfix] no more fails to accept incoming connections when listening to multiple ports (thanks to miyagawa)
+
 0.03  Wed Feb 10 10:35:00 2010
 	- improve test (use $^X instead of hardcoded /usr/bin/perl)
 

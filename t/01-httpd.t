@@ -27,10 +27,3 @@ test_tcp(
         isnt($worker_pid, $new_worker_pid, 'worker pid changed');
     },
 );
-
-# we use sleep since...
-# Net::Server's shutdown implementation is corrupt.
-# Net::Server::close_children tries to wait for the children but occasionally
-# fails to do so, since it uses WNOHANG.  The issuse is difficult to fix since
-#  Net::Server does not maintain a list of child processes alive.
-sleep 5;

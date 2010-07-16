@@ -1,5 +1,8 @@
 Revision history for Perl extension Net::Server::SS::PreFork.
 
+0.05  Mon Feb 22 10:31:00 2010
+	- [bugfix] add sleep to t/02 so that client test code would not run prior to test server bootup
+
 0.04  Tue Feb 16 13:31:00 2010
 	- [bugfix] no more fails to accept incoming connections when listening to multiple ports (thanks to miyagawa)
 

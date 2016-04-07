@@ -5,6 +5,7 @@ use warnings;
 
 use Net::Server::PreFork;
 use Net::Server::Proto::TCP;
+use Net::Server::Proto::UNIX;
 use Server::Starter qw(server_ports);
 
 use base qw(Net::Server::PreFork);
@@ -17,15 +18,22 @@ sub pre_bind {
     
     my %ports = %{server_ports()};
     for my $port (sort keys %ports) {
-        my $sock = Net::Server::Proto::TCP->new();
-        if ($port =~ /^(.*):(.*?)$/) {
-            $sock->NS_host($1);
-            $sock->NS_port($2);
+        my $sock;
+        if ($port =~ /^(.*):(.*?)$/ || $port =~ /^[0-9]+$/s) {
+            $sock = Net::Server::Proto::TCP->new();
+            $sock->NS_proto('TCP');
+            if ($port =~ /^(.*):(.*?)$/) {
+              $sock->NS_host($1);
+              $sock->NS_port($2);
+            } else {
+              $sock->NS_host('*');
+              $sock->NS_port($port);
+            }
         } else {
-            $sock->NS_host('*');
+            $sock = Net::Server::Proto::UNIX->new();
+	    $sock->NS_proto('UNIX');
             $sock->NS_port($port);
         }
-        $sock->NS_proto('TCP');
         $sock->fdopen($ports{$port}, 'r')
             or $self->fatal("failed to bind listening socket:$ports{$port}:$!");
         push @{$prop->{sock}}, $sock;

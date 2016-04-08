@@ -5,18 +5,24 @@ use warnings;
 
 use lib qw(blib/lib lib);
 
-use IO::Socket::UNIX;
+my $server = MyServer->new()->run();
+
+package MyServer;
+
+use base qw( Net::Server::SS::PreFork );
 use Server::Starter qw(server_ports);
 
-my $listener = IO::Socket::UNIX->new()
-    or die "failed to create unix socket:$!";
-$listener->fdopen((values %{server_ports()})[0], 'w')
-    or die "failde to bind to listening socket:$!";
+sub new {
+  my ($class) = @_;
 
-while (1) {
-    if (my $conn = $listener->accept) {
-        while ($conn->sysread(my $buf, 7) > 0) {
-	    $conn->syswrite(getppid);
-        }
-    }
+  return $class->SUPER::new({
+    proto => 'unix',
+    port  => (values %{Server::Starter::server_ports()})[0],
+  });
 }
+
+sub process_request {
+  print getppid, "\n";
+}
+
+1;

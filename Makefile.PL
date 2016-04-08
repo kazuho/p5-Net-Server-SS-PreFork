@@ -10,6 +10,7 @@ requires 'Net::Server';
 requires 'Server::Starter' => 0.02;
 test_requires 'LWP::Simple';
 test_requires 'Test::TCP' => 0.06;
+test_requires 'Test::UNIXSock';
 test_requires 'HTTP::Server::Simple::CGI';
 
 auto_include;

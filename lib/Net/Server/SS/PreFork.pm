@@ -31,7 +31,7 @@ sub pre_bind {
             }
         } else {
             $sock = Net::Server::Proto::UNIX->new();
-	    $sock->NS_proto('UNIX');
+            $sock->NS_proto('UNIX');
             $sock->NS_port($port);
         }
         $sock->fdopen($ports{$port}, 'r')

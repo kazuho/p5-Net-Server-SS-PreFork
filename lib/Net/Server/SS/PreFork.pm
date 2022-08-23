@@ -175,7 +175,7 @@ for the complete list):
     --SSL_key_file /path/to/key.pem
     --SSL_cipher_list whatever
 
-Note that if you're using Starman the command-line args are different, see
+Note that if you're using Starman the command-line args are different. See
 perldoc Starman::Server for details.
 
 =head1 AUTHOR

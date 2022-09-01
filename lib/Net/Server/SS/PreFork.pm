@@ -77,7 +77,7 @@ sub maybe_upgrade_to_ssl {
 
     $sock->configure_SSL({
        %ssl_args,
-       SSL_Server => 1,
+       SSL_server => 1,
     });
 
     $sock->NS_proto('SSL');

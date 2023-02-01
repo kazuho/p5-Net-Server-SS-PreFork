@@ -76,8 +76,13 @@ sub maybe_upgrade_to_ssl {
     $self->configure({map {$_ => \$ssl_args{$_}} @ssl_args});
 
     $sock->configure_SSL({
-       %ssl_args,
-       SSL_server => 1,
+        %ssl_args,
+
+        # Newer versions of Net::Server >= 2.011 need this to postpone the SSL
+        # handshake.  Older versions ignore it and don't need it.
+        SSL_startHandshake => 0,
+
+        SSL_server => 1,
     });
 
     $sock->NS_proto('SSL');

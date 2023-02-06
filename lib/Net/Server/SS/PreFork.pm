@@ -12,6 +12,7 @@ use base qw(Net::Server::PreFork);
 
 our $VERSION = 0.05;
 
+
 sub pre_bind {
     my $self = shift;
     my $prop = $self->{server};
@@ -19,6 +20,8 @@ sub pre_bind {
     my %ports = %{server_ports()};
     for my $port (sort keys %ports) {
         my $sock;
+        my $fd = $ports{$port};
+        my $ssl_this_port = $port =~ s/:ssl$//;
         if ($port =~ /^(.*):(.*?)$/ || $port =~ /^[0-9]+$/s) {
             $sock = Net::Server::Proto::TCP->new();
             $sock->NS_proto('TCP');
@@ -34,12 +37,57 @@ sub pre_bind {
             $sock->NS_proto('UNIX');
             $sock->NS_port($port);
         }
-        $sock->fdopen($ports{$port}, 'r')
-            or $self->fatal("failed to bind listening socket:$ports{$port}:$!");
+        $sock->fdopen($fd, 'r')
+            or $self->fatal("failed to bind listening socket for port $port fd $fd: $!");
+
+        $self->maybe_upgrade_to_ssl($sock, $ssl_this_port);
+
         push @{$prop->{sock}}, $sock;
     }
     $prop->{multi_port} = 1 if @{$prop->{sock}} > 1;
 }
+
+
+# this list from Net::Server::Proto::SSL
+my @ssl_args = qw(
+    SSL_use_cert
+    SSL_verify_mode
+    SSL_key_file
+    SSL_cert_file
+    SSL_ca_path
+    SSL_ca_file
+    SSL_cipher_list
+    SSL_passwd_cb
+    SSL_max_getline_length
+    SSL_error_callback
+);
+
+sub maybe_upgrade_to_ssl {
+    my ($self, $sock, $ssl_this_port) = @_;
+
+    return unless $ssl_this_port || grep { $_ eq '--SSL' } @{$self->commandline};
+
+    require Net::Server::Proto::SSL;
+
+    bless($sock, 'Net::Server::Proto::SSL');
+
+    my %ssl_args = map {$_ => undef} @ssl_args;
+
+    $self->configure({map {$_ => \$ssl_args{$_}} @ssl_args});
+
+    $sock->configure_SSL({
+        %ssl_args,
+
+        # Newer versions of Net::Server >= 2.011 need this to postpone the SSL
+        # handshake.  Older versions ignore it and don't need it.
+        SSL_startHandshake => 0,
+
+        SSL_server => 1,
+    });
+
+    $sock->NS_proto('SSL');
+}
+
 
 sub bind {
   my $self = shift;
@@ -113,6 +161,27 @@ Net::Server::SS::PreFork - a hot-deployable variant of Net::Server::PreFork
 =head1 DESCRIPTION
 
 L<Net::Server::SS::PreFork> is L<Net::Server> personality, extending L<Net::Server::PreFork>, that can be run by the L<start_server> script of L<Server::Starter>.
+
+To use SSL/TLS with start_server you'll need to install Net::Server::Proto::SSL
+and IO::Socket::SSL yourself, and then can either enable ssl selectively to
+ports in start_server by adding the :ssl suffix like this:
+
+    --port 127.0.0.46:2349:ssl
+    --port 127.0.0.46:2350:ssl
+
+or by making them all SSL with this argument to your Net::Server::SS::PreFork code
+
+    --SSL
+
+and specifying SSL arguments like this (see Net::Server::Proto::SSL's @ssl_args
+for the complete list):
+
+    --SSL_cert_file /path/to/cert.pem
+    --SSL_key_file /path/to/key.pem
+    --SSL_cipher_list whatever
+
+Note that if you're using Starman the command-line args are different. See
+perldoc Starman::Server for details.
 
 =head1 AUTHOR
 
